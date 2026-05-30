@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-slate-50 font-sans text-slate-800 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-slate-900 sm:text-xl;
+  }
+
+  .field-label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500;
+  }
+
+  .field-value {
+    @apply text-sm font-medium text-slate-800;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/25 transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 shadow-sm transition placeholder:text-slate-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+  }
+}
+
+/* react-select overrides */
+.job-select__control {
+  @apply !min-h-[46px] !rounded-xl !border-slate-300 !shadow-sm;
+}
+
+.job-select__control--is-focused {
+  @apply !border-primary-500 !shadow-none !ring-2 !ring-primary-500/20;
+}
+
+.job-select__multi-value {
+  @apply !rounded-lg !bg-primary-100;
+}
+
+.job-select__multi-value__label {
+  @apply !text-primary-800;
+}
+
+.job-select__multi-value__remove:hover {
+  @apply !bg-primary-200 !text-primary-900;
+}
