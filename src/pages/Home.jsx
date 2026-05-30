@@ -3,18 +3,18 @@ import Header from '../components/Header';
 import FileUpload from '../components/FileUpload';
 import JobSearch from '../components/JobSearch';
 import JobCard from '../components/JobCard';
-import Remarks from '../components/Remarks';
 import GenerateButton from '../components/GenerateButton';
 import { isValidExcelFile, parseExcelFile } from '../utils/excelParser';
 import { parseInputDate, toInputDateValue } from '../utils/dateHelpers';
+import { applyEditsToJobs } from '../utils/jobEdits';
 
 export default function Home() {
   const [jobs, setJobs] = useState([]);
   const [selectedJobs, setSelectedJobs] = useState([]);
+  const [jobEdits, setJobEdits] = useState({});
   const [loading, setLoading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [jobDate, setJobDate] = useState(() => toInputDateValue(new Date()));
-  const [customRemarks, setCustomRemarks] = useState('');
 
   const handleFileSelect = useCallback(async (file) => {
     setUploadError('');
@@ -30,13 +30,37 @@ export default function Home() {
       const parsed = parseExcelFile(buffer);
       setJobs(parsed);
       setSelectedJobs([]);
+      setJobEdits({});
     } catch (err) {
       setJobs([]);
       setSelectedJobs([]);
+      setJobEdits({});
       setUploadError(err.message || 'Failed to read the Excel file.');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const handleSelectionChange = useCallback(
+    (jobsFromSelect) => {
+      setSelectedJobs(applyEditsToJobs(jobsFromSelect, jobEdits));
+    },
+    [jobEdits],
+  );
+
+  const updateJobField = useCallback((jobId, field, value) => {
+    setJobEdits((prev) => ({
+      ...prev,
+      [jobId]: {
+        editableRemarks: prev[jobId]?.editableRemarks ?? '',
+        noOfCuts: prev[jobId]?.noOfCuts ?? '',
+        ...prev[jobId],
+        [field]: value,
+      },
+    }));
+    setSelectedJobs((prev) =>
+      prev.map((job) => (job.id === jobId ? { ...job, [field]: value } : job)),
+    );
   }, []);
 
   const handleClearSelection = () => {
@@ -60,7 +84,7 @@ export default function Home() {
         <JobSearch
           jobs={jobs}
           selectedJobs={selectedJobs}
-          onSelectionChange={setSelectedJobs}
+          onSelectionChange={handleSelectionChange}
           disabled={loading || !jobs.length}
         />
 
@@ -111,7 +135,12 @@ export default function Home() {
           ) : (
             <div className="space-y-4">
               {selectedJobs.map((job, index) => (
-                <JobCard key={job.id} job={job} index={index} />
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  index={index}
+                  onEditChange={(field, value) => updateJobField(job.id, field, value)}
+                />
               ))}
             </div>
           )}
@@ -133,16 +162,9 @@ export default function Home() {
           />
         </section>
 
-        <Remarks
-          value={customRemarks}
-          onChange={setCustomRemarks}
-          disabled={loading}
-        />
-
         <GenerateButton
           selectedJobs={selectedJobs}
           jobDate={parsedJobDate}
-          customRemarks={customRemarks}
           disabled={loading}
         />
       </main>

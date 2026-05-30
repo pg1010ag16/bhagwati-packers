@@ -6,7 +6,6 @@ import { formatDownloadFilename } from '../utils/dateHelpers';
 export default function GenerateButton({
   selectedJobs,
   jobDate,
-  customRemarks,
   disabled,
 }) {
   const exportRef = useRef(null);
@@ -48,8 +47,8 @@ export default function GenerateButton({
           Generate & Download
         </h2>
         <p className="mb-4 text-sm text-slate-600">
-          Creates a high-quality PNG with Bhagwati Packers branding, job details, date, and
-          your custom remarks.
+          Creates a high-quality PNG with Bhagwati Packers branding, job details, per-job
+          remarks, and no. of cuts (when filled).
         </p>
 
         {error && (
@@ -91,11 +90,7 @@ export default function GenerateButton({
         aria-hidden
       >
         <div ref={exportRef}>
-          <ImageExportCard
-            jobDate={jobDate}
-            customRemarks={customRemarks}
-            selectedJobs={selectedJobs}
-          />
+          <ImageExportCard jobDate={jobDate} selectedJobs={selectedJobs} />
         </div>
       </div>
     </>

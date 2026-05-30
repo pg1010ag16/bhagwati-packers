@@ -1,4 +1,9 @@
 import { formatShortDate } from '../utils/dateHelpers';
+import {
+  JOB_DETAIL_FIELDS,
+  JOB_EXTRA_FIELDS,
+  PAPER_GSM_FIELDS,
+} from '../utils/jobFields';
 
 function ExportField({ label, value }) {
   return (
@@ -9,12 +14,83 @@ function ExportField({ label, value }) {
   );
 }
 
-export default function ImageExportCard({ jobDate, customRemarks, selectedJobs }) {
+function JobEditableExport({ job }) {
+  const hasNoOfCuts = Boolean(job.noOfCuts?.trim());
+  const hasRemarks = Boolean(job.editableRemarks?.trim());
+
+  if (!hasNoOfCuts && !hasRemarks) return null;
+
+  return (
+    <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50/60 p-3">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+        Manufacturing Notes
+      </p>
+      <div className="space-y-2">
+        {hasNoOfCuts && <ExportField label="No of Cuts" value={job.noOfCuts} />}
+        {hasRemarks && (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              Remarks
+            </p>
+            <p className="mt-0.5 whitespace-pre-wrap text-sm font-medium text-slate-900">
+              {job.editableRemarks}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function JobExportDetails({ job }) {
+  const visibleExtra = JOB_EXTRA_FIELDS.filter(
+    ({ key }) => job[key] && key !== 'remarks',
+  );
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        {JOB_DETAIL_FIELDS.map(({ key, label }) => (
+          <ExportField key={key} label={label} value={job[key]} />
+        ))}
+      </div>
+
+      <div className="mt-3 rounded-md border border-blue-100 bg-blue-50/50 p-3">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+          Paper Gsm
+        </p>
+        <div className="grid grid-cols-5 gap-2">
+          {PAPER_GSM_FIELDS.map(({ key, label }) => (
+            <ExportField key={key} label={label} value={job[key]} />
+          ))}
+        </div>
+      </div>
+
+      {visibleExtra.length > 0 && (
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {visibleExtra.map(({ key, label }) => (
+            <ExportField key={key} label={label} value={job[key]} />
+          ))}
+        </div>
+      )}
+
+      {job.remarks && (
+        <div className="mt-3">
+          <ExportField label="Sheet Remarks (Excel)" value={job.remarks} />
+        </div>
+      )}
+
+      <JobEditableExport job={job} />
+    </>
+  );
+}
+
+export default function ImageExportCard({ jobDate, selectedJobs }) {
   const dateLabel = formatShortDate(jobDate);
 
   return (
     <div
-      className="w-[800px] max-w-none bg-white p-8 font-sans text-slate-900"
+      className="w-[900px] max-w-none bg-white p-8 font-sans text-slate-900"
       style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
     >
       <div className="rounded-lg bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 px-6 py-5 text-white">
@@ -25,39 +101,21 @@ export default function ImageExportCard({ jobDate, customRemarks, selectedJobs }
         <p className="mt-1 text-sm text-blue-100">Job Date: {dateLabel}</p>
       </div>
 
-      {customRemarks?.trim() && (
-        <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-xs font-semibold uppercase text-amber-800">Remarks</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-amber-900">{customRemarks}</p>
-        </div>
-      )}
-
       <div className="mt-6 space-y-5">
         {selectedJobs.map((job, index) => (
-          <div
-            key={job.id}
-            className="rounded-lg border border-slate-200 p-4"
-          >
+          <div key={job.id} className="rounded-lg border border-slate-200 p-4">
             <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
               <h2 className="text-base font-bold text-blue-800">
                 Job {index + 1}: {job.customerName || '—'}
+                {job.boxName ? ` · ${job.boxName}` : ''}
               </h2>
-              {job.boxId && (
+              {job.layers && (
                 <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
-                  {job.boxId}
+                  {job.layers}
                 </span>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <ExportField label="Customer Name" value={job.customerName} />
-              <ExportField label="Box Name" value={job.boxName} />
-              <ExportField label="Box ID" value={job.boxId} />
-              <ExportField label="Dimensions" value={job.dimensions} />
-              <ExportField label="Layers" value={job.layers} />
-              <ExportField label="Reel Size" value={job.reelSize} />
-              <ExportField label="Proceed to Manufacture" value={job.proceedToManufacture} />
-              <ExportField label="Remarks / Notes" value={job.remarks} />
-            </div>
+            <JobExportDetails job={job} />
           </div>
         ))}
       </div>

@@ -4,6 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: {
+          teal: '#1e5f6b',
+          'teal-dark': '#174a54',
+          orange: '#e89550',
+          'orange-dark': '#d47d3a',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

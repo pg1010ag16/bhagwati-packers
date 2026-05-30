@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Select from 'react-select';
-import { filterJobsBySearch, jobsToSelectOptions } from '../utils/jobHelpers';
+import { jobMatchesQuery, jobsToSelectOptions } from '../utils/jobHelpers';
 
 const selectStyles = {
   menu: (base) => ({ ...base, zIndex: 50 }),
+  menuPortal: (base) => ({ ...base, zIndex: 50 }),
 };
 
 export default function JobSearch({
@@ -14,17 +15,31 @@ export default function JobSearch({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredJobs = useMemo(
-    () => filterJobsBySearch(jobs, searchQuery),
-    [jobs, searchQuery],
-  );
-
-  const options = useMemo(() => jobsToSelectOptions(filteredJobs), [filteredJobs]);
+  const options = useMemo(() => jobsToSelectOptions(jobs), [jobs]);
 
   const value = useMemo(
     () => jobsToSelectOptions(selectedJobs),
     [selectedJobs],
   );
+
+  const filterOption = useCallback((option, inputValue) => {
+    const job = option.data?.job;
+    if (job) {
+      return jobMatchesQuery(job, inputValue);
+    }
+    const label = (option.label ?? '').toLowerCase();
+    const q = inputValue.trim().toLowerCase();
+    return !q || label.includes(q);
+  }, []);
+
+  const handleInputChange = (inputValue, { action }) => {
+    if (action === 'input-change') {
+      setSearchQuery(inputValue);
+    }
+    if (action === 'menu-close' && !inputValue) {
+      setSearchQuery('');
+    }
+  };
 
   if (!jobs.length) {
     return (
@@ -46,7 +61,7 @@ export default function JobSearch({
       </h2>
 
       <label htmlFor="job-search-input" className="field-label">
-        Search by Customer Name, Box Name, or Box ID
+        Search by customer, box name, dimensions, layers, paper BF, GSM, etc.
       </label>
       <input
         id="job-search-input"
@@ -70,16 +85,25 @@ export default function JobSearch({
         isDisabled={disabled}
         options={options}
         value={value}
+        inputValue={searchQuery}
+        onInputChange={handleInputChange}
+        filterOption={filterOption}
         onChange={(selected) => {
           const list = selected ? selected.map((opt) => opt.job) : [];
           onSelectionChange(list);
         }}
         placeholder="Search and select jobs…"
-        noOptionsMessage={() =>
-          searchQuery ? 'No jobs match your search' : 'No jobs available'
+        noOptionsMessage={({ inputValue }) =>
+          inputValue?.trim()
+            ? `No jobs match "${inputValue}"`
+            : 'Type above or here to search'
         }
         styles={selectStyles}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+        menuPosition="fixed"
         closeMenuOnSelect={false}
+        hideSelectedOptions={false}
+        blurInputOnSelect={false}
       />
     </section>
   );
