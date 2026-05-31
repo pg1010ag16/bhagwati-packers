@@ -224,7 +224,7 @@ function buildJobFromRow(row, columnMap, index, useArrayRow) {
   };
 }
 
-function parseFromArrayRows(rows) {
+export function parseArrayRows(rows) {
   const headerRowIdx = findHeaderRowIndex(rows);
   const hasSubHeader = isSubHeaderRow(rows[headerRowIdx + 1]);
   const combinedHeaders = buildCombinedHeaders(
@@ -269,7 +269,7 @@ export function parseExcelFile(arrayBuffer) {
     throw new Error('The Excel sheet is empty.');
   }
 
-  let jobs = parseFromArrayRows(arrayRows);
+  let jobs = parseArrayRows(arrayRows);
 
   if (!jobs.length) {
     const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });

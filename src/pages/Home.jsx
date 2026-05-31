@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import Header from '../components/Header';
+import GoogleSheetsConnect from '../components/GoogleSheetsConnect';
 import FileUpload from '../components/FileUpload';
 import JobSearch from '../components/JobSearch';
 import JobCard from '../components/JobCard';
@@ -13,14 +14,29 @@ export default function Home() {
   const [selectedJobs, setSelectedJobs] = useState([]);
   const [jobEdits, setJobEdits] = useState({});
   const [loading, setLoading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
+  const [dataError, setDataError] = useState('');
   const [jobDate, setJobDate] = useState(() => toInputDateValue(new Date()));
 
+  const resetJobState = useCallback(() => {
+    setJobs([]);
+    setSelectedJobs([]);
+    setJobEdits({});
+  }, []);
+
+  const handleJobsLoaded = useCallback((parsed) => {
+    setJobs(parsed);
+    setSelectedJobs([]);
+    setJobEdits({});
+    if (parsed.length > 0) {
+      setDataError('');
+    }
+  }, []);
+
   const handleFileSelect = useCallback(async (file) => {
-    setUploadError('');
+    setDataError('');
 
     if (!isValidExcelFile(file)) {
-      setUploadError('Invalid file type. Please upload a .xlsx or .xls file.');
+      setDataError('Invalid file type. Please upload a .xlsx or .xls file.');
       return;
     }
 
@@ -28,18 +44,14 @@ export default function Home() {
     try {
       const buffer = await file.arrayBuffer();
       const parsed = parseExcelFile(buffer);
-      setJobs(parsed);
-      setSelectedJobs([]);
-      setJobEdits({});
+      handleJobsLoaded(parsed);
     } catch (err) {
-      setJobs([]);
-      setSelectedJobs([]);
-      setJobEdits({});
-      setUploadError(err.message || 'Failed to read the Excel file.');
+      resetJobState();
+      setDataError(err.message || 'Failed to read the Excel file.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [handleJobsLoaded, resetJobState]);
 
   const handleSelectionChange = useCallback(
     (jobsFromSelect) => {
@@ -74,11 +86,28 @@ export default function Home() {
       <Header />
 
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+        <GoogleSheetsConnect
+          onJobsLoaded={handleJobsLoaded}
+          onError={setDataError}
+          loading={loading}
+          setLoading={setLoading}
+          jobCount={jobs.length}
+        />
+
+        {dataError && (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            role="alert"
+          >
+            {dataError}
+          </div>
+        )}
+
         <FileUpload
           onFileSelect={handleFileSelect}
           loading={loading}
-          jobCount={jobs.length}
-          error={uploadError}
+          error=""
+          collapsed
         />
 
         <JobSearch
@@ -129,7 +158,7 @@ export default function Home() {
               </svg>
               <p className="text-sm font-medium text-slate-600">No jobs selected</p>
               <p className="mt-1 max-w-sm text-xs text-slate-500">
-                Upload an Excel file and use the search dropdown above to select one or more jobs.
+                Connect your Google Sheet or upload Excel, then search and select jobs above.
               </p>
             </div>
           ) : (
@@ -170,7 +199,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} Bhagwati Packers · Frontend-only · Vercel ready
+        © {new Date().getFullYear()} Bhagwati Packers · Google Sheets connected
       </footer>
     </div>
   );

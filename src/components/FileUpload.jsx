@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-export default function FileUpload({ onFileSelect, loading, jobCount, error }) {
+
+export default function FileUpload({ onFileSelect, loading, error, collapsed }) {
   const inputRef = useRef(null);
 
   const handleChange = (event) => {
@@ -18,21 +19,10 @@ export default function FileUpload({ onFileSelect, loading, jobCount, error }) {
     }
   };
 
-  return (
-    <section className="card" aria-labelledby="upload-heading">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="upload-heading" className="section-title">
-          Upload Excel
-        </h2>
-        {jobCount > 0 && (
-          <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-800">
-            {jobCount} jobs loaded
-          </span>
-        )}
-      </div>
-
+  const content = (
+    <>
       <div
-        className="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/50 px-4 py-10 transition hover:border-primary-400 hover:bg-primary-50"
+        className="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-8 transition hover:border-primary-300 hover:bg-slate-50"
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
       >
@@ -48,31 +38,15 @@ export default function FileUpload({ onFileSelect, loading, jobCount, error }) {
 
         {loading ? (
           <div className="flex flex-col items-center gap-3" role="status" aria-live="polite">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
             <p className="text-sm font-medium text-primary-700">Reading Excel file…</p>
           </div>
         ) : (
           <>
-            <svg
-              className="mb-3 h-12 w-12 text-primary-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
-            <p className="text-center text-sm font-semibold text-slate-700">
-              Drag & drop your Excel file here
+            <p className="text-center text-sm font-medium text-slate-700">
+              Drag & drop Excel here, or click to browse
             </p>
-            <p className="mt-1 text-center text-xs text-slate-500">
-              or click to browse · .xlsx and .xls supported
-            </p>
+            <p className="mt-1 text-center text-xs text-slate-500">.xlsx and .xls</p>
           </>
         )}
       </div>
@@ -85,6 +59,26 @@ export default function FileUpload({ onFileSelect, loading, jobCount, error }) {
           {error}
         </div>
       )}
+    </>
+  );
+
+  if (collapsed) {
+    return (
+      <details className="card">
+        <summary className="cursor-pointer section-title text-base">
+          Or upload Excel file manually
+        </summary>
+        <div className="mt-4">{content}</div>
+      </details>
+    );
+  }
+
+  return (
+    <section className="card" aria-labelledby="upload-heading">
+      <h2 id="upload-heading" className="section-title mb-4">
+        Upload Excel
+      </h2>
+      {content}
     </section>
   );
 }
