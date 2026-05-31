@@ -48,7 +48,7 @@ export default function JobSearch({
           Search Jobs
         </h2>
         <p className="text-sm text-slate-500">
-          Upload an Excel file first to search and select jobs.
+          Jobs will appear here once loaded from the Boxes tab in Google Sheets.
         </p>
       </section>
     );

@@ -21,7 +21,7 @@ export const JOB_EXTRA_FIELDS = [
   { key: 'colorJob', label: 'Color Job (1/2/3/4/6)' },
   { key: 'boxId', label: 'Box ID' },
   { key: 'remarks', label: 'Remarks / Notes' },
-  { key: 'proceedToManufacture', label: 'Proceed to Manufacture' },
+  { key: 'proceedToManufacture', label: 'Is Proceed to Manufacture' },
 ];
 
 export function hasPaperGsmValues(job) {

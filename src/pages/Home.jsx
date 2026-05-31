@@ -1,11 +1,9 @@
 import { useCallback, useState } from 'react';
 import Header from '../components/Header';
 import GoogleSheetsConnect from '../components/GoogleSheetsConnect';
-import FileUpload from '../components/FileUpload';
 import JobSearch from '../components/JobSearch';
 import JobCard from '../components/JobCard';
 import GenerateButton from '../components/GenerateButton';
-import { isValidExcelFile, parseExcelFile } from '../utils/excelParser';
 import { parseInputDate, toInputDateValue } from '../utils/dateHelpers';
 import { applyEditsToJobs } from '../utils/jobEdits';
 
@@ -13,15 +11,9 @@ export default function Home() {
   const [jobs, setJobs] = useState([]);
   const [selectedJobs, setSelectedJobs] = useState([]);
   const [jobEdits, setJobEdits] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dataError, setDataError] = useState('');
   const [jobDate, setJobDate] = useState(() => toInputDateValue(new Date()));
-
-  const resetJobState = useCallback(() => {
-    setJobs([]);
-    setSelectedJobs([]);
-    setJobEdits({});
-  }, []);
 
   const handleJobsLoaded = useCallback((parsed) => {
     setJobs(parsed);
@@ -31,27 +23,6 @@ export default function Home() {
       setDataError('');
     }
   }, []);
-
-  const handleFileSelect = useCallback(async (file) => {
-    setDataError('');
-
-    if (!isValidExcelFile(file)) {
-      setDataError('Invalid file type. Please upload a .xlsx or .xls file.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const buffer = await file.arrayBuffer();
-      const parsed = parseExcelFile(buffer);
-      handleJobsLoaded(parsed);
-    } catch (err) {
-      resetJobState();
-      setDataError(err.message || 'Failed to read the Excel file.');
-    } finally {
-      setLoading(false);
-    }
-  }, [handleJobsLoaded, resetJobState]);
 
   const handleSelectionChange = useCallback(
     (jobsFromSelect) => {
@@ -103,13 +74,6 @@ export default function Home() {
           </div>
         )}
 
-        <FileUpload
-          onFileSelect={handleFileSelect}
-          loading={loading}
-          error=""
-          collapsed
-        />
-
         <JobSearch
           jobs={jobs}
           selectedJobs={selectedJobs}
@@ -158,7 +122,9 @@ export default function Home() {
               </svg>
               <p className="text-sm font-medium text-slate-600">No jobs selected</p>
               <p className="mt-1 max-w-sm text-xs text-slate-500">
-                Connect your Google Sheet or upload Excel, then search and select jobs above.
+                {loading
+                  ? 'Waiting for jobs from Google Sheets…'
+                  : 'Use the search dropdown above to select one or more jobs.'}
               </p>
             </div>
           ) : (
@@ -199,7 +165,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} Bhagwati Packers · Google Sheets connected
+        © {new Date().getFullYear()} Bhagwati Packers · Synced from Google Sheets
       </footer>
     </div>
   );

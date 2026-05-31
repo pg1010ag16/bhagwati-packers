@@ -1,15 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
-const DEFAULT_SHEET = 'Boxes';
-
-function buildGoogleCsvUrl(spreadsheetId, sheetName) {
-  const params = new URLSearchParams({
-    tqx: 'out:csv',
-    sheet: sheetName || DEFAULT_SHEET,
-  });
-  return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?${params.toString()}`;
-}
+import { getGoogleSheetExportUrl } from './src/config/sheet.js';
 
 function sheetsApiPlugin() {
   return {
@@ -29,28 +20,15 @@ function sheetsApiPlugin() {
           return;
         }
 
-        const url = new URL(req.url, 'http://localhost');
-        const spreadsheetId = url.searchParams.get('spreadsheetId');
-        const sheetName = url.searchParams.get('sheetName') || DEFAULT_SHEET;
-
-        if (!spreadsheetId || !/^[a-zA-Z0-9-_]+$/.test(spreadsheetId)) {
-          res.statusCode = 400;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: 'Invalid spreadsheet ID.' }));
-          return;
-        }
-
         try {
-          const googleUrl = buildGoogleCsvUrl(spreadsheetId, sheetName);
-          const response = await fetch(googleUrl);
+          const response = await fetch(getGoogleSheetExportUrl());
 
           if (!response.ok) {
             res.statusCode = response.status;
             res.setHeader('Content-Type', 'application/json');
             res.end(
               JSON.stringify({
-                error:
-                  'Could not fetch Google Sheet. Ensure it is shared as "Anyone with the link can view".',
+                error: 'Could not fetch Google Sheet. Ensure it is shared publicly.',
               }),
             );
             return;
@@ -83,7 +61,6 @@ function sheetsApiPlugin() {
   };
 }
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), sheetsApiPlugin()],
   build: {
