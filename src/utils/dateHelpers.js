@@ -28,9 +28,10 @@ export function parseInputDate(value) {
   return new Date(year, month - 1, day);
 }
 
-export function formatDownloadFilename(date = new Date()) {
+export function formatDownloadFilename(date = new Date(), extension = 'png') {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return `Bhagwati-Packers-${day}-${month}-${year}.png`;
+  const ext = extension.replace(/^\./, '');
+  return `Bhagwati-Packers-${day}-${month}-${year}.${ext}`;
 }
